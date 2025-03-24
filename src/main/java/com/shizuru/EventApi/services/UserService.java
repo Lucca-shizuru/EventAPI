@@ -1,6 +1,8 @@
 package com.shizuru.EventApi.services;
 
 import com.shizuru.EventApi.dtos.UserRecordDto;
+import com.shizuru.EventApi.exceptions.EventIsFullException;
+import com.shizuru.EventApi.exceptions.UserNotFoundException;
 import com.shizuru.EventApi.models.UserModel;
 import com.shizuru.EventApi.repositories.UserRepository;
 import jakarta.validation.Valid;
@@ -21,36 +23,45 @@ public class UserService {
 
     @Autowired
     private final UserRepository userRepository;
+    private static final int maxUsers = 10;
 
-    public UserModel createUser(UserModel user){
-        return userRepository.save(user);
+    public UserModel createUser(@Valid UserRecordDto userRecordDto) {
+        long usercount = userRepository.count();
+        if (usercount >= maxUsers) {
+            throw new EventIsFullException("Event is full, if anyone leaves, we contact you");
+        }
+
+        UserModel userModel = new UserModel();
+        BeanUtils.copyProperties(userRecordDto, userModel);
+        return userRepository.save(userModel);
     }
-    public List<UserModel> getallUsers(){
+
+    public List<UserModel> getAllUsers() {
         return userRepository.findAll();
     }
-    public Optional<UserModel> getUserById(UUID userId){
-        return userRepository.findAllById(userId);
+
+    public UserModel getUserById(UUID userId) {
+        return userRepository.findAllById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
     }
+
     public UserModel updateUser(UUID userId, @Valid UserRecordDto userRecordDto) {
-        Optional<UserModel> existingUser = userRepository.findById(userId);
-        if (existingUser.isPresent()) {
-            UserModel userModel = existingUser.get();
+        UserModel userModel = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found."));
 
-            BeanUtils.copyProperties(userRecordDto, userModel, "userid");
+        BeanUtils.copyProperties(userRecordDto, userModel, "userid");
 
-            return userRepository.save(userModel);
-        }
-        return null;
-    }
-    public boolean deleteUser(UUID userId){
-        if (userRepository.existsById(userId)){
-            userRepository.deleteById(userId);
-            return true;
-        }
-        return false;
+        return userRepository.save(userModel);
     }
 
 
+    public boolean deleteUser(UUID userId) {
+        UserModel userModel = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+
+        userRepository.delete(userModel);
+        return true;
+    }
 
 
 }

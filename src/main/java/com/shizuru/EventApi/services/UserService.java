@@ -18,50 +18,47 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@AllArgsConstructor
 public class UserService {
 
-    @Autowired
     private final UserRepository userRepository;
+
     private static final int maxUsers = 10;
 
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     public UserModel createUser(@Valid UserRecordDto userRecordDto) {
-        long usercount = userRepository.count();
-        if (usercount >= maxUsers) {
+        if (userRepository.count() >= maxUsers) {
             throw new EventIsFullException("Event is full, if anyone leaves, we contact you");
         }
 
         UserModel userModel = new UserModel();
         BeanUtils.copyProperties(userRecordDto, userModel);
-        return userRepository.save(userModel);
+        return userRepository.saveUser(userModel);
     }
 
     public List<UserModel> getAllUsers() {
-        return userRepository.findAll();
+        return userRepository.findAllUsers();
     }
 
     public UserModel getUserById(UUID userId) {
-        return userRepository.findAllById(userId)
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("User not found."));
     }
 
     public UserModel updateUser(UUID userId, @Valid UserRecordDto userRecordDto) {
-        UserModel userModel = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found."));
-
-        BeanUtils.copyProperties(userRecordDto, userModel, "userid");
-
-        return userRepository.save(userModel);
+        return userRepository.updateUser(userId, userRecordDto);
     }
 
 
-    public boolean deleteUser(UUID userId) {
-        UserModel userModel = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found with id: " + userId));
+    public void deleteUser(UUID userId) {
+        UserModel userModel = getUserById(userId);
+        userRepository.deleteUser(userModel);
 
-        userRepository.delete(userModel);
-        return true;
     }
+
 
 
 }

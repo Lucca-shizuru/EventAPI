@@ -3,7 +3,6 @@ package com.shizuru.EventApi.infra;
 import com.shizuru.EventApi.exceptions.EventIsFullException;
 import com.shizuru.EventApi.exceptions.UserNotFoundException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;

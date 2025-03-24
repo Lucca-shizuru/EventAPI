@@ -29,30 +29,24 @@ public class UserController {
 
     @GetMapping
     public ResponseEntity<List<UserModel>> getAllUsers() {
-        List<UserModel> users = userService.getAllUsers();
-        return ResponseEntity.status(HttpStatus.OK).body(users);
+        return ResponseEntity.ok(userService.getAllUsers());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Object> getUserById(@PathVariable UUID id) {
-        UserModel userModel = userService.getUserById(id);
-        return ResponseEntity.status(HttpStatus.OK).body(userModel);
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Object> updateUser(@PathVariable UUID id,
                                              @RequestBody @Valid UserRecordDto userRecordDto) {
-        UserModel userModel = userService.updateUser(id, userRecordDto);
-        return ResponseEntity.status(HttpStatus.OK).body(userModel);
+        return ResponseEntity.ok(userService.updateUser(id,userRecordDto));
 
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteUser(@PathVariable UUID id) {
-        boolean deleted = userService.deleteUser(id);
-        if (deleted) {
-            return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-        }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        userService.deleteUser(id);
+        return ResponseEntity.noContent().build();
     }
 }
